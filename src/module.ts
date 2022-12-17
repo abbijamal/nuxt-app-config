@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs'
-import defu from 'defu'
+import { defu } from 'defu'
 import { defineNuxtModule } from '@nuxt/kit'
 import { parseFiles, importFile } from './utils'
-import type { ModuleOptions } from './types'
+import type { ModuleOptions, DirsOptions } from './types'
 
 export * from './types'
 
@@ -25,20 +25,24 @@ export default defineNuxtModule<ModuleOptions>({
   },
 
   async setup(moduleOptions, nuxt) {
-    const { dev, srcDir } = nuxt.options
+    const { dev, srcDir: _srcDir, buildDir } = nuxt.options
     const { dir, files } = moduleOptions
-    const configDir = `${srcDir}/${dir}`
 
-    if (existsSync(configDir)) {
-      const { defFile, devFile, proFile } = await parseFiles(configDir, files)
+    const dirs: DirsOptions = {
+      srcDir: `${_srcDir}/${dir}`,
+      distDir: `${buildDir}/${dir}`
+    }
+
+    if (existsSync(dirs.srcDir)) {
+      const { defFile, devFile, proFile } = await parseFiles(dirs, files)
 
       if (defFile || devFile || proFile) {
-        const defImport = await importFile(configDir, defFile)
-        const devImport = await importFile(configDir, devFile)
-        const proImport = await importFile(configDir, proFile)
+        const defImport = await importFile(dirs, defFile)
+        const devImport = await importFile(dirs, devFile)
+        const proImport = await importFile(dirs, proFile)
 
         const environment = dev ? devImport : proImport
-        const config: any = defu({}, environment, defImport)
+        const config: object = defu({}, environment, defImport)
 
         nuxt.options.appConfig = config
       }

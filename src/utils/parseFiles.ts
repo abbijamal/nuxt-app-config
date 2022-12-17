@@ -1,5 +1,5 @@
 import fg from 'fast-glob'
-import type { FilesOptions } from '../types'
+import type { FilesOptions, DirsOptions } from '../types'
 
 /**
  * Filters the required file from the list.
@@ -23,12 +23,13 @@ const filterFile = (files: string[], name: string) => {
  *
  * @since 1.0.0
  */
-export const parseFiles = async (configDir: string, files?: FilesOptions) => {
+export const parseFiles = async (dirs: DirsOptions, files?: FilesOptions) => {
+  const { srcDir } = dirs
   const defName = files?.defaults as string
   const devName = files?.development as string
   const proName = files?.production as string
 
-  const getFiles = await fg([`${configDir}/*.{ts,js,mjs}`])
+  const getFiles = await fg([`${srcDir}/*.{ts,js,mjs}`])
   const parsedFiles: string[] = []
 
   if (getFiles.length) {
