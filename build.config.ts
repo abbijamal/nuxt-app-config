@@ -1,5 +1,5 @@
 import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
-  externals: ['defu', 'fast-glob', 'typescript']
+  externals: ['defu', 'fast-glob', 'esbuild']
 })

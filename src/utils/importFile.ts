@@ -1,6 +1,6 @@
-import { existsSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import tsc from 'typescript'
+import { existsSync, mkdirSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
+import { transform } from 'esbuild'
 import type { DirsOptions } from '../types'
 
 /**
@@ -15,14 +15,13 @@ export const importFile = async (dirs: DirsOptions, _file: string) => {
   const [name, ,] = _file.split(/\.(?=[^.]+$)/)
   const fileSrc = `${srcDir}/${_file}`
   const fileDist = `${distDir}/${name}.mjs`
-  const options = { compilerOptions: { module: tsc.ModuleKind.ESNext } }
 
   if (_file.includes('.ts')) {
     const ts = await readFile(fileSrc)
-    const transpile = tsc.transpileModule(ts.toString(), options).outputText
+    const transformed = await transform(ts.toString(), { loader: 'ts' })
 
-    if (!existsSync(distDir)) await mkdir(distDir, { recursive: true })
-    await writeFile(fileDist, transpile)
+    if (!existsSync(distDir)) mkdirSync(distDir, { recursive: true })
+    await writeFile(fileDist, transformed.code)
 
     file = (await import(fileDist)).default
   } else if (_file) {
